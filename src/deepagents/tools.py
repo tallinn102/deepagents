@@ -1,3 +1,10 @@
+"""Core tools for DeepAgents.
+
+This module defines the standard tools available to deep agents, including
+todo management, filesystem operations (list, read, write, edit files), and
+related utilities.
+"""
+
 from langchain_core.tools import tool, InjectedToolCallId
 from langchain_core.messages import ToolMessage
 from langgraph.types import Command

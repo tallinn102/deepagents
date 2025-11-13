@@ -1,6 +1,13 @@
+"""Graph construction and agent creation for DeepAgents.
+
+This module provides the main entry points for creating deep agents with full
+middleware stacks including planning, filesystem, subagent delegation, and more.
+"""
+
 from typing import Sequence, Union, Callable, Any, Type, Optional
 from langchain_core.tools import BaseTool
 from langchain_core.language_models import LanguageModelLike
+from langchain_core.runnables import Runnable
 from langgraph.types import Checkpointer
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, SummarizationMiddleware, HumanInTheLoopMiddleware
@@ -21,7 +28,27 @@ def agent_builder(
     context_schema: Optional[Type[Any]] = None,
     checkpointer: Optional[Checkpointer] = None,
     is_async: bool = False,
-):
+) -> Runnable:
+    """Build a deep agent with a complete middleware stack.
+
+    This internal builder function creates agents with the full DeepAgents middleware
+    stack, including planning, filesystem, subagent delegation, summarization, and
+    prompt caching. It serves as the foundation for both sync and async agent creation.
+
+    Args:
+        tools: Tools the agent should have access to.
+        instructions: Additional instructions for the system prompt.
+        middleware: Optional additional middleware to append to the stack.
+        tool_configs: Optional tool interrupt configurations for human-in-the-loop.
+        model: Language model to use. Defaults to Claude Sonnet 4 if None.
+        subagents: Optional list of subagent configurations.
+        context_schema: Optional schema for the agent's context/state.
+        checkpointer: Optional checkpointer for persisting state between runs.
+        is_async: Whether to create async or sync subagent tools.
+
+    Returns:
+        A configured Runnable agent instance.
+    """
     if model is None:
         model = get_default_model()
 
@@ -66,7 +93,7 @@ def create_deep_agent(
     context_schema: Optional[Type[Any]] = None,
     checkpointer: Optional[Checkpointer] = None,
     tool_configs: Optional[dict[str, bool | ToolConfig]] = None,
-):
+) -> Runnable:
     """Create a deep agent.
     This agent will by default have access to a tool to write todos (write_todos),
     four file editing tools: write_file, ls, read_file, edit_file, and a tool to call subagents.
@@ -108,7 +135,7 @@ def async_create_deep_agent(
     context_schema: Optional[Type[Any]] = None,
     checkpointer: Optional[Checkpointer] = None,
     tool_configs: Optional[dict[str, bool | ToolConfig]] = None,
-):
+) -> Runnable:
     """Create a deep agent.
     This agent will by default have access to a tool to write todos (write_todos),
     four file editing tools: write_file, ls, read_file, edit_file, and a tool to call subagents.

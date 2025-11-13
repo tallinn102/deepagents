@@ -1,3 +1,9 @@
+"""Type definitions for DeepAgents.
+
+This module defines TypedDict schemas for subagent configurations, including
+standard SubAgent with tools and middleware, and CustomSubAgent with pre-built graphs.
+"""
+
 from typing import NotRequired, Union, Any
 from typing_extensions import TypedDict
 from langchain_core.language_models import LanguageModelLike

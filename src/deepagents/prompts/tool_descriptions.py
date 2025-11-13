@@ -1,3 +1,11 @@
+"""
+Tool descriptions for deepagents.
+
+This module contains all tool description constants used throughout the deepagents package.
+These descriptions are used to provide context and guidance to language models about how to
+use various tools available to agents.
+"""
+
 WRITE_TODOS_TOOL_DESCRIPTION = """Use this tool to create and manage a structured task list for your current work session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
 It also helps the user understand the progress of the task and overall progress of their requests.
 Only use this tool if you think it will be helpful in staying organized. If the user's request is trivial and takes less than 3 steps, it is better to NOT use this tool and just do the taks directly.
@@ -171,7 +179,7 @@ Assistant: I'll help you order a pizza from Dominos, order a burger from McDonal
 *Orders a salad from Subway*
 
 <reasoning>
-Even though this is a multi-step task, assuming the assistant has the ability to order from these restaurants, it is very straightforward and can be completed in three trivial tool calls. 
+Even though this is a multi-step task, assuming the assistant has the ability to order from these restaurants, it is very straightforward and can be completed in three trivial tool calls.
 Using the todo list here is overkill and wastes time and tokens. These three tool calls should be made in parallel, in fact.
 </reasoning>
 </example>
@@ -212,7 +220,7 @@ Being proactive with task management demonstrates attentiveness and ensures you 
 Remember: If you only need to make a few tool calls to complete a task, and it is clear what you need to do, it is better to just do the task directly and NOT call this tool at all.
 """
 
-TASK_TOOL_DESCRIPTION = """Launch an ephemeral subagent to handle complex, multi-step independent tasks with isolated context windows. 
+TASK_TOOL_DESCRIPTION = """Launch an ephemeral subagent to handle complex, multi-step independent tasks with isolated context windows.
 
 Available agent types and the tools they have access to:
 - general-purpose: General-purpose agent for researching complex questions, searching for files and content, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you. This agent has access to all tools as the main agent.
@@ -303,7 +311,7 @@ function isPrime(n) {{
 Since significant content was created and the task was completed, now use the content-reviewer agent to review the work
 </commentary>
 assistant: Now let me use the content-reviewer agent to review the code
-assistant: Uses the Task tool to launch with the content-reviewer agent 
+assistant: Uses the Task tool to launch with the content-reviewer agent
 </example>
 
 <example>
@@ -339,18 +347,18 @@ Usage:
 - You can optionally specify a line offset and limit (especially handy for long files), but it's recommended to read the whole file by not providing these parameters
 - Any lines longer than 2000 characters will be truncated
 - Results are returned using cat -n format, with line numbers starting at 1
-- You have the capability to call multiple tools in a single response. It is always better to speculatively read multiple files as a batch that are potentially useful. 
+- You have the capability to call multiple tools in a single response. It is always better to speculatively read multiple files as a batch that are potentially useful.
 - If you read a file that exists but has empty contents you will receive a system reminder warning in place of file contents.
 - You should ALWAYS make sure a file has been read before editing it."""
 
-EDIT_FILE_TOOL_DESCRIPTION = """Performs exact string replacements in files. 
+EDIT_FILE_TOOL_DESCRIPTION = """Performs exact string replacements in files.
 
 Usage:
-- You must use your `Read` tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file. 
+- You must use your `Read` tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file.
 - When editing text from Read tool output, ensure you preserve the exact indentation (tabs/spaces) as it appears AFTER the line number prefix. The line number prefix format is: spaces + line number + tab. Everything after that tab is the actual file content to match. Never include any part of the line number prefix in the old_string or new_string.
 - ALWAYS prefer editing existing files. NEVER write new files unless explicitly required.
 - Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked.
-- The edit will FAIL if `old_string` is not unique in the file. Either provide a larger string with more surrounding context to make it unique or use `replace_all` to change every instance of `old_string`. 
+- The edit will FAIL if `old_string` is not unique in the file. Either provide a larger string with more surrounding context to make it unique or use `replace_all` to change every instance of `old_string`.
 - Use `replace_all` for replacing and renaming strings across the file. This parameter is useful if you want to rename a variable for instance."""
 
 WRITE_FILE_TOOL_DESCRIPTION = """Writes to a file in the local filesystem.
@@ -360,57 +368,3 @@ Usage:
 - The content parameter must be a string
 - The write_file tool will create the a new file.
 - Prefer to edit existing files over creating new ones when possible."""
-
-WRITE_TODOS_SYSTEM_PROMPT = """## `write_todos`
-
-You have access to the `write_todos` tool to help you manage and plan complex objectives. 
-Use this tool for complex objectives to ensure that you are tracking each necessary step and giving the user visibility into your progress.
-This tool is very helpful for planning complex objectives, and for breaking down these larger complex objectives into smaller steps.
-
-It is critical that you mark todos as completed as soon as you are done with a step. Do not batch up multiple steps before marking them as completed.
-For simple objectives that only require a few steps, it is better to just complete the objective directly and NOT use this tool.
-Writing todos takes time and tokens, use it when it is helpful for managing complex many-step problems! But not for simple few-step requests.
-
-## Important To-Do List Usage Notes to Remember
-- The `write_todos` tool should never be called multiple times in parallel.
-- Don't be afraid to revise the To-Do list as you go. New information may reveal new tasks that need to be done, or old tasks that are irrelevant."""
-
-TASK_SYSTEM_PROMPT = """## `task` (subagent spawner)
-
-You have access to a `task` tool to launch short-lived subagents that handle isolated tasks. These agents are ephemeral — they live only for the duration of the task and return a single result.
-
-When to use the task tool:
-- When a task is complex and multi-step, and can be fully delegated in isolation
-- When a task is independent of other tasks and can run in parallel
-- When a task requires focused reasoning or heavy token/context usage that would bloat the orchestrator thread
-- When sandboxing improves reliability (e.g. code execution, structured searches, data formatting)
-- When you only care about the output of the subagent, and not the intermediate steps (ex. performing a lot of research and then returned a synthesized report, performing a series of computations or lookups to achieve a concise, relevant answer.)
-
-Subagent lifecycle:
-1. **Spawn** → Provide clear role, instructions, and expected output
-2. **Run** → The subagent completes the task autonomously
-3. **Return** → The subagent provides a single structured result
-4. **Reconcile** → Incorporate or synthesize the result into the main thread
-
-When NOT to use the task tool:
-- If you need to see the intermediate reasoning or steps after the subagent has completed (the task tool hides them)
-- If the task is trivial (a few tool calls or simple lookup)
-- If delegating does not reduce token usage, complexity, or context switching
-- If splitting would add latency without benefit
-
-## Important Task Tool Usage Notes to Remember
-- Whenever possible, parallelize the work that you do. This is true for both tool_calls, and for tasks. Whenever you have independent steps to complete - make tool_calls, or kick off tasks (subagents) in parallel to accomplish them faster. This saves time for the user, which is incredibly important.
-- Remember to use the `task` tool to silo independent tasks within a multi-part objective.
-- You should use the `task` tool whenever you have a complex task that will take multiple steps, and is independent from other tasks that the agent needs to complete. These agents are highly competent and efficient."""
-
-FILESYSTEM_SYSTEM_PROMPT = """## Filesystem Tools `ls`, `read_file`, `write_file`, `edit_file`
-
-You have access to a local, private filesystem which you can interact with using these tools.
-- ls: list all files in the local filesystem
-- read_file: read a file from the local filesystem
-- write_file: write to a file in the local filesystem
-- edit_file: edit a file in the local filesystem"""
-
-BASE_AGENT_PROMPT = """
-In order to complete the objective that the user asks of you, you have access to a number of standard tools.
-"""
